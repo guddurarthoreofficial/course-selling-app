@@ -1,6 +1,7 @@
 import express from "express";
 import "dotenv/config";
 import mongoose from "mongoose";
+import courseRouter from './routes/course.routes.js';
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -14,6 +15,10 @@ try {
 } catch (err) {
   console.log(err);
 }
+
+
+// defining routes
+app.use("/api/v1/course",courseRouter)
 
 
 app.get("/", (req, res) => res.send("Hello World!"));
