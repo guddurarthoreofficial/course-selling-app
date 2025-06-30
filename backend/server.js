@@ -6,6 +6,14 @@ import courseRouter from './routes/course.routes.js';
 const app = express();
 const port = process.env.PORT || 3000;
 
+// middleware  
+app.use(express.json());
+app.use(fileUpload({
+    useTempFiles : true,
+    tempFileDir : '/tmp/'
+}));
+
+
 const DB_URI = process.env.MONGO_URI;
 
 //connect to db
