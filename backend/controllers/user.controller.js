@@ -4,7 +4,6 @@ import jwt from "jsonwebtoken";
 import * as z from "zod/v4";
 import "dotenv/config";
 
-
 export const signup = async (req, res) => {
   const { firstName, lastName, email, password } = req.body;
 
@@ -53,6 +52,7 @@ export const signup = async (req, res) => {
   }
 };
 
+
 export const login = async (req, res) => {
   const { email, password } = req.body;
 
@@ -69,7 +69,7 @@ export const login = async (req, res) => {
       return res.status(403).json({ errors: "Invalid credentials" });
     }
 
-    // jwt code 
+    // jwt code
     const token = jwt.sign(
       {
         id: user._id,
@@ -79,11 +79,22 @@ export const login = async (req, res) => {
     );
 
     // save in cookie
-    res.cookie("jwt",token);
+    res.cookie("jwt", token);
 
-    res.status(200).json({ message: "Login successful", user,token });
+    res.status(200).json({ message: "Login successful", user, token });
   } catch (error) {
     console.error("Error in login:", error);
     res.status(500).json({ error: "Error in login" });
+  }
+};
+
+
+export const logout = async (req, res) => {
+  try {
+    res.clearCookie("jwt");
+    return res.status(200).json({ message: "Logout successfully" });
+  } catch (error) {
+    console.error("Error in logout:", error);
+    return res.status(500).json({ error: "Error in logout" });
   }
 };
