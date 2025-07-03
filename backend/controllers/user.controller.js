@@ -1,6 +1,9 @@
 import { User } from "../models/user.model.js";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 import * as z from "zod/v4";
+import "dotenv/config";
+
 
 export const signup = async (req, res) => {
   const { firstName, lastName, email, password } = req.body;
@@ -12,9 +15,7 @@ export const signup = async (req, res) => {
     lastName: z
       .string()
       .min(3, { message: "Last name must be at least 3 characters long" }),
-    email: z
-      .string()
-      .email({ message: "Invalid email address" }),
+    email: z.string().email({ message: "Invalid email address" }),
     password: z
       .string()
       .min(6, { message: "Password must be at least 6 characters long" }),
@@ -41,7 +42,7 @@ export const signup = async (req, res) => {
       firstName,
       lastName,
       email,
-      password: hashedPassword, 
+      password: hashedPassword,
     });
 
     await newUser.save();
@@ -51,7 +52,6 @@ export const signup = async (req, res) => {
     return res.status(500).json({ error: "Server error during signup" });
   }
 };
-
 
 export const login = async (req, res) => {
   const { email, password } = req.body;
@@ -69,7 +69,19 @@ export const login = async (req, res) => {
       return res.status(403).json({ errors: "Invalid credentials" });
     }
 
-    res.status(200).json({ message: "Login successful", user });
+    // jwt code 
+    const token = jwt.sign(
+      {
+        id: user._id,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "5h" }
+    );
+
+    // save in cookie
+    res.cookie("jwt",token);
+
+    res.status(200).json({ message: "Login successful", user,token });
   } catch (error) {
     console.error("Error in login:", error);
     res.status(500).json({ error: "Error in login" });
