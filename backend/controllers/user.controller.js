@@ -3,6 +3,8 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import * as z from "zod/v4";
 import "dotenv/config";
+import { Purchase } from "../models/purchase.model.js";
+import { Course } from "../models/course.model.js";
 
 export const signup = async (req, res) => {
   const { firstName, lastName, email, password } = req.body;
@@ -52,7 +54,6 @@ export const signup = async (req, res) => {
   }
 };
 
-
 export const login = async (req, res) => {
   const { email, password } = req.body;
 
@@ -75,11 +76,16 @@ export const login = async (req, res) => {
         id: user._id,
       },
       process.env.JWT_SECRET,
-      { expiresIn: "5h" }
+      { expiresIn: "1d" }
     );
 
     // save in cookie
-    res.cookie("jwt", token);
+    res.cookie("jwt", token, {
+      httpOnly: true, // Recommended: protects from XSS
+      secure: process.env.NODE_ENV == "production", // Recommended in production: sends only over HTTPS
+      sameSite: "strict", // Recommended: mitigates CSRF
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
 
     res.status(200).json({ message: "Login successful", user, token });
   } catch (error) {
@@ -88,7 +94,6 @@ export const login = async (req, res) => {
   }
 };
 
-
 export const logout = async (req, res) => {
   try {
     res.clearCookie("jwt");
@@ -96,5 +101,24 @@ export const logout = async (req, res) => {
   } catch (error) {
     console.error("Error in logout:", error);
     return res.status(500).json({ error: "Error in logout" });
+  }
+};
+
+export const purchases = async (req, res) => {
+  const userId = req.userId;
+
+  try {
+    const purchased = await Purchase.find({ userId });
+
+    const purchasedCourseId = purchased.map(item => item.courseId);
+
+    const courseData = await Course.find({
+      _id: { $in: purchasedCourseId },
+    });
+
+    res.status(200).json({ purchased, courseData });
+  } catch (error) {
+    console.error("Error in purchase:", error);
+    res.status(500).json({ error: "Error retrieving purchases" });
   }
 };
