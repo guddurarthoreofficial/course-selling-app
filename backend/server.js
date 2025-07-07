@@ -1,7 +1,12 @@
 import express from "express";
 import "dotenv/config";
-import courseRouter from "./routes/course.routes.js";
-import userRouter from "./routes/user.routes.js";
+import cookieParser from "cookie-parser";
+
+
+import courseRoute from "./routes/course.routes.js";
+import userRoute from "./routes/user.routes.js";
+import adminRoute from "./routes/admin.routes.js";
+
 import fileUpload from "express-fileupload";
 import { v2 as cloudinary } from "cloudinary";
 import connectDB from "./config/db.js";
@@ -11,6 +16,9 @@ const port = process.env.PORT || 3000;
 
 // middleware
 app.use(express.json()); 
+app.use(cookieParser());
+
+
 app.use(
   fileUpload({
     useTempFiles: true,
@@ -23,8 +31,9 @@ app.use(
 connectDB();
 
 // defining routes
-app.use("/api/v1/course", courseRouter);
-app.use("/api/v1/user",userRouter);
+app.use("/api/v1/course", courseRoute);
+app.use("/api/v1/user",userRoute);
+app.use("/api/v1/admin",adminRoute);
 
 // cloudnary configuration code
 cloudinary.config({
