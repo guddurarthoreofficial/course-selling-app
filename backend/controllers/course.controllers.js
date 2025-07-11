@@ -3,6 +3,9 @@ import { v2 as cloudinary } from "cloudinary";
 import { Purchase } from "../models/purchase.model.js";
 
 export const createCourse = async (req, res) => {
+  const adminId = req.adminId;
+  console.log(adminId);
+
   console.log("course is created");
 
   try {
@@ -44,6 +47,7 @@ export const createCourse = async (req, res) => {
         public_id: cloudResponse.public_id,
         url: cloudResponse.secure_url,
       },
+      creatorId: adminId,
     };
 
     const course = await Course.create(courseData);
@@ -58,45 +62,82 @@ export const createCourse = async (req, res) => {
   }
 };
 
+
 export const updateCourse = async (req, res) => {
+  const adminId = req.adminId;
   const { courseId } = req.params;
   const { title, description, price, image } = req.body;
 
   try {
-    // First, find the course
-    const course = await Course.findById(courseId);
-    if (!course) {
-      return res.status(404).json({ error: "Course not found" });
-    }
-
-    // Update fields
-    course.title = title || course.title;
-    course.description = description || course.description;
-    course.price = price || course.price;
-
-    // Update image if provided
+    const updateFields = {};
+    if (title) updateFields.title = title;
+    if (description) updateFields.description = description;
+    if (price) updateFields.price = price;
     if (image) {
-      course.image = {
-        public_id: image.public_id || course.image.public_id,
-        url: image.url || course.image.url,
-      };
+      updateFields['image.public_id'] = image.public_id;
+      updateFields['image.url'] = image.url;
     }
 
-    // Save the updated course
-    await course.save();
+    const course = await Course.findOneAndUpdate(
+      { _id: courseId, creatorId: adminId }
+    );
 
-    res.status(200).json({ message: "Course updated successfully" });
+    if (!course) {
+      return res.status(404).json({ error: "Course not found or you are not the creator" });
+    }
+
+    res.status(200).json({ message: "Course updated successfully", course });
   } catch (err) {
-    console.log("Error in Course updating:", err);
+    console.error("Error in Course updating:", err); // Use console.error for errors
     res.status(500).json({ error: "Error in Course updating" });
   }
-};
+};  
+
+// export const updateCourse = async (req, res) => {
+//   const adminId = req.adminId;
+
+//   const { courseId } = req.params;
+//   const { title, description, price, image } = req.body;
+
+//   try {
+//     // First, find the course
+//     const course = await Course.updateOne({
+//       _id: courseId,
+//       creatorId: adminId,
+//     });
+//     if (!course) {
+//       return res.status(404).json({ error: "Course not found" });
+//     }
+
+//     // Update fields
+//     course.title = title || course.title;
+//     course.description = description || course.description;
+//     course.price = price || course.price;
+
+//     // Update image if provided
+//     if (image) {
+//       course.image = {
+//         public_id: image.public_id || course.image.public_id,
+//         url: image.url || course.image.url,
+//       };
+//     }
+
+//     // Save the updated course
+//     await course.save();
+
+//     res.status(200).json({ message: "Course updated successfully" });
+//   } catch (err) {
+//     console.log("Error in Course updating:", err);
+//     res.status(500).json({ error: "Error in Course updating" });
+//   }
+// };
 
 export const deleteCourse = async (req, res) => {
+  const adminId = req.adminId;
   const { courseId } = req.params;
 
   try {
-    const course = await Course.findOneAndDelete({ _id: courseId });
+    const course = await Course.findOneAndDelete({ _id: courseId,creatorId:adminId });
 
     if (!course) {
       return res.status(404).json({ error: "Course not found" });
@@ -134,31 +175,33 @@ export const CourseDetails = async (req, res) => {
   }
 };
 
-  export const buyCourses = async (req, res) => {
-    const { userId } = req;
-    // console.log("userId = ",userId);
-    const { courseId } = req.params;
-    // console.log("courseId = ",courseId);
+export const buyCourses = async (req, res) => {
+  const { userId } = req;
+  // console.log("userId = ",userId);
+  const { courseId } = req.params;
+  // console.log("courseId = ",courseId);
 
-    try {
-      const course = await Course.findById(courseId);
+  try {
+    const course = await Course.findById(courseId);
 
-      if (!course) {
-        return res.status(404).json({ error: "Course not found" });
-      }
-
-      const existingPurchase = await Purchase.findOne({ userId, courseId });
-
-      if (existingPurchase) {
-        return res.status(400).json({ error: "User has already purchased this course" });
-      }
-
-      const newPurchase = new Purchase({ userId, courseId });
-      await newPurchase.save();
-
-      return res.status(201).json({ message: "Course purchased successfully" });
-    } catch (error) {
-      console.error("Error in course buying:", error);
-      return res.status(500).json({ error: "Error buying course" });
+    if (!course) {
+      return res.status(404).json({ error: "Course not found" });
     }
-  };
+
+    const existingPurchase = await Purchase.findOne({ userId, courseId });
+
+    if (existingPurchase) {
+      return res
+        .status(400)
+        .json({ error: "User has already purchased this course" });
+    }
+
+    const newPurchase = new Purchase({ userId, courseId });
+    await newPurchase.save();
+
+    return res.status(201).json({ message: "Course purchased successfully" });
+  } catch (error) {
+    console.error("Error in course buying:", error);
+    return res.status(500).json({ error: "Error buying course" });
+  }
+};
