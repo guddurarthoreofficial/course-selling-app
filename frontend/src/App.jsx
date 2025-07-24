@@ -1,19 +1,21 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
-
+// App.js
+import { Routes, Route, Link } from "react-router-dom";
+import Home from './components/Home';
+import Login from './components/Login';
+import Signup from './components/Signup';
 function App() {
-  const [count, setCount] = useState(0)
 
   return (
-    <>
-      <h1 class="text-rose-950  underline">
-        tailwind css done
-      </h1>
+    <div>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="login/" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+      </Routes>
+    </div>
+  );
 
-    </>
-  )
+  
 }
 
-export default App
+export default App;

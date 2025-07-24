@@ -1,7 +1,7 @@
 import express from "express";
 import "dotenv/config";
 import cookieParser from "cookie-parser";
-
+import cors from "cors";
 
 import courseRoute from "./routes/course.routes.js";
 import userRoute from "./routes/user.routes.js";
@@ -11,12 +11,20 @@ import fileUpload from "express-fileupload";
 import { v2 as cloudinary } from "cloudinary";
 import connectDB from "./config/db.js";
 
+
 const app = express();
 const port = process.env.PORT || 3000;
 
 // middleware
 app.use(express.json()); 
 app.use(cookieParser());
+
+app.use(cors({
+  origin: process.env.FRONTEND_URL,
+  methods: "GET,POST,PUT,DELETE",
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
+}));
 
 
 app.use(
