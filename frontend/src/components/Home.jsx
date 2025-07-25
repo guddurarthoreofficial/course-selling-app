@@ -19,7 +19,7 @@ function Home() {
                 const response = await axios.get('http://localhost:4001/api/v1/course/courses', {
                     withCredentials: true, // Include cookies in the request
                 });
-                setCourses(response.data.courses); 
+                setCourses(response.data.courses); // store data in state
                 console.log("Courses:", response.data.courses);
             } catch (err) {
                 console.error("Error fetching courses:", err);
@@ -34,7 +34,7 @@ function Home() {
         infinite: false,
         speed: 500,
         slidesToShow: 4,
-        slidesToScroll: 4,
+        slidesToScroll: 2,
         initialSlide: 0,
         autoplay: true,
         // autoplaySpeed: 2000,
@@ -67,8 +67,8 @@ function Home() {
 
 
     return (
-        <div className="bg-gradient-to-r from-black to-blue-950">
-            <div className="h-screen text-white container mx-auto">
+        <div className="bg-gradient-to-r from-black to-blue-950 h-screen">
+            <div className="h-[1250px] md:h-[1050px] text-white container mx-auto">
 
                 {/* Header */}
                 <header className="flex items-center justify-between p-6">
@@ -117,7 +117,7 @@ function Home() {
 
 
                 {/* Courses Slider */}
-                {/* <section>
+                <section>
                     <Slider {...settings}>
                         {courses.map((course) => (
                             <div className="p-4" key={course._id}>
@@ -137,7 +137,7 @@ function Home() {
                             </div>
                         ))}
                     </Slider>
-                </section> */}
+                </section>
 
 
                 {/* Footer */}
